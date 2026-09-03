@@ -1,7 +1,7 @@
 # Forecasting Median Listing Price in Rhode Island
 **STAT 645 — Time Series Forecasting · Drexel University · Final Project**
 
-FRED series `MEDLISPRIRI` — monthly median listing price, Rhode Island, Jul 2016 – Mar 2026 (n = 117). Twelve candidate models evaluated on a 12-month holdout; **ETS(M,A,M)** selected as the winner.
+FRED series `MEDLISPRIRI` — monthly median listing price, Rhode Island, Jul 2016 – Mar 2026 (n = 117). The original course project evaluated twelve candidates on one 12-month holdout and selected **ETS(M,A,M)**. A preregistered post-project rolling-origin check now recommends **manual seasonal ARIMA** for future refits because it reduced pooled RMSE by 38.6% across five annual validation windows.
 
 ---
 
@@ -51,6 +51,25 @@ The series captures the 2020–2024 housing boom and the 2025–2026 price softe
 
 ---
 
+## Post-Project Robustness Check
+
+The original April 2025–March 2026 holdout is only one market regime. To test whether its model ranking generalizes, `rolling_origin_backtest.R` compares the two leading fixed specifications across five expanding training prefixes and non-overlapping 12-month validation windows. No model order or threshold was tuned against these windows.
+
+| Validation window | ETS(M,A,M) RMSE | Seasonal ARIMA RMSE | ARIMA improvement | Winner |
+|---|---:|---:|---:|---|
+| Apr 2021–Mar 2022 | $19,827 | $15,162 | +23.5% | ARIMA |
+| Apr 2022–Mar 2023 | $33,540 | $39,272 | −17.1% | ETS |
+| Apr 2023–Mar 2024 | $67,246 | $27,504 | +59.1% | ARIMA |
+| Apr 2024–Mar 2025 | $76,886 | $42,925 | +44.2% | ARIMA |
+| Apr 2025–Mar 2026 | $12,658 | $14,021 | −10.8% | ETS |
+| **Pooled** | **$49,217** | **$30,225** | **+38.6%** | **ARIMA** |
+
+The preregistered promotion rule required at least 5% lower pooled RMSE, no increase in pooled MAE, and at least three lower-RMSE folds. Seasonal ARIMA passed all three: pooled MAE fell from $36,553 to $23,427 and ARIMA won 3 of 5 folds. The result is still regime-sensitive—ETS wins two windows, including the original final holdout—so this is a recommendation for future refits, not a claim that ETS was uniformly inferior.
+
+![Rolling-origin comparison](figures/08_rolling_origin_comparison.png)
+
+---
+
 ## Forecast Accuracy — 12-Month Holdout
 
 Sorted by RMSE (lower is better):
@@ -77,7 +96,7 @@ ETS(M,A,M) beats every baseline and the closest ARIMA challenger by ~1,400 RMSE 
 
 ---
 
-## Selected Model — ETS(M,A,M)
+## Original Course Selection — ETS(M,A,M)
 
 Multiplicative error, additive trend, multiplicative seasonality. Appropriate for a series with a strong level and proportional seasonal swings.
 
@@ -98,9 +117,9 @@ Multiplicative error, additive trend, multiplicative seasonality. Appropriate fo
 
 ---
 
-## 12-Month Forecast (Apr 2026 – Mar 2027)
+## Original 12-Month Forecast (Apr 2026 – Mar 2027)
 
-Refit on the full series (n = 117). 80% and 95% prediction intervals.
+This table preserves the submitted course project's ETS(M,A,M) forecast. It has not been replaced with a post-project ARIMA forecast. Refit on the full series (n = 117), with 80% and 95% prediction intervals.
 
 | Month | Point | 80% Low | 80% High | 95% Low | 95% High |
 |-------|------:|--------:|---------:|--------:|---------:|
@@ -125,7 +144,9 @@ The model projects a seasonal summer peak near $588k in July 2026, followed by t
 
 ## Conclusions
 
-- **ETS(M,A,M)** is the best-performing model — beats all baselines and the seasonal ARIMA on every accuracy metric
+- **Original course result:** ETS(M,A,M) wins the final April 2025–March 2026 holdout and produced the preserved forecast below
+- **Post-project robustness result:** manual seasonal ARIMA lowers pooled RMSE by 38.6% across five annual windows and is recommended for future refits
+- Model rankings are regime-sensitive: ETS wins 2 windows and ARIMA wins 3, so monitoring should compare both specifications as new observations arrive
 - The 2020–2022 COVID shock is the dominant source of residual structure; it cannot be fully absorbed by a univariate model
 - The forecast assumes no structural break (interest rate shock, policy change, demand shift)
 - Rhode Island's ~90% price run over the sample represents one housing cycle — a longer history would improve long-run uncertainty estimates
@@ -142,6 +163,8 @@ The model projects a seasonal summer peak near $588k in July 2026, followed by t
 | [`stat645_final_project.Rmd`](stat645_final_project.Rmd) | R Markdown report |
 | [`stat645_final_project.html`](stat645_final_project.html) | Rendered HTML report |
 | [`stat645_final_presentation.pptx`](stat645_final_presentation.pptx) | Slide deck |
+| [`rolling_origin_backtest.R`](rolling_origin_backtest.R) | Post-project five-window ETS vs seasonal ARIMA robustness check |
+| [`figures/rolling_origin_metrics.csv`](figures/rolling_origin_metrics.csv) | Reproducible fold and pooled RMSE/MAE evidence |
 | [`MEDLISPRIRI.xlsx`](MEDLISPRIRI.xlsx) | Source data (FRED) |
 | [`Stat 645 project(2).pdf`](Stat%20645%20project(2).pdf) | Project rubric |
 | [`figures/`](figures/) | All exported plots and accuracy / forecast tables |
